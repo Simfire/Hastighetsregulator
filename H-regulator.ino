@@ -42,18 +42,23 @@ void setup() {
   digitalWrite(ignitionPin,HIGH);            // Power to ignition coil OFF.
   digitalWrite(wheelSensorTestPin1,HIGH);   // Initiates test
   lcd.setCursor(0,0);
-  lcd.print("Hjulsensortest");
+  lcd.print("Test hjulsensor");
   delay(1000);
  
   if (digitalRead(wheelSensorTestPin2) == HIGH){
     wheelSensorOK = true;
     lcd.clear();
-    lcd.setCursor(1,0);
+    lcd.setCursor(0,0);
     lcd.print("Hjulsensor OK!");
     delay(3000);
-    lcd.setCursor(0,1);
-    lcd.print("Kor forsiktigt!");
-    delay(3000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("K");
+    lcd.print(char(239));
+    lcd.print("r f");
+    lcd.print(char(239));
+    lcd.print("rsiktigt!");
+    delay(4000);
     }
    else {
     wheelSensorOK = false;
@@ -67,7 +72,9 @@ void setup() {
     delay(2000);
     lcd.clear();
     lcd.setCursor(3,0);
-    lcd.print("Startsparr");
+    lcd.print("Startsp");
+    lcd.print(char(225));
+    lcd.print("rr");
     lcd.setCursor(3,1);
     lcd.print("aktiverad!");
     delay(2000);
@@ -106,13 +113,13 @@ void loop() {
     }
   velocity = frequency * 0.1425; // Speed in km/h.
   lcd.clear();
-  lcd.setCursor(0,0);
-    lcd.print(frequency);
-    lcd.print("  Hz");
   lcd.setCursor(0,1);
+  lcd.print(frequency);
+  lcd.print(" Hz");
+  lcd.setCursor(0,0);
   lcd.print(velocity);
-  lcd.print("  km/h");
-  delay(100);
+  lcd.print(" km/h");
+  delay(500);
     
           }
 }
