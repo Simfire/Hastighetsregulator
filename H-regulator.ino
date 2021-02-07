@@ -101,14 +101,14 @@ void loop() {
   else {
     frequency = 1000000/ pulseTotal;      // Frequency in Hertz. (Hz)
     
-    if (frequency < 130) {                       // Equals a velocity of 13 km/h
+    if (frequency < 200) {                       // Equals a velocity of 13 km/h
     digitalWrite(ignitionPin, HIGH);
 //    lcd.setCursor(0,0);
 //    lcd.print(frequency);
 //    lcd.print("  Hz");
 //    delay(500);
     }
-    if (frequency > 140) {            // Equals a velocity of 16 km/h
+    if (frequency > 230) {            // Equals a velocity of 16 km/h
     digitalWrite(ignitionPin, LOW);
     }
   velocity = frequency * 0.1425; // Speed in km/h.
