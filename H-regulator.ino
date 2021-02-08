@@ -21,8 +21,8 @@ const int wheelSensorTestPin1 = 8;  // For testing the condition of the wheelsen
 const int wheelSensorTestPin2 = 11;  //              - " -
 const int pulsePin = 12;            // Pin for reading the puls from the wheelsensor.
 const int ignitionPin = 10;         // Controls the status of the ignitioncoil.
-int pulseHigh;                      // High duration time of pulse.
-int pulseLow;                       // Low duration time of pulse.
+long pulseHigh;                      // High duration time of pulse.
+long pulseLow;                       // Low duration time of pulse.
 float pulseTotal;                   // Period time of the pulse.
 float frequency;                    // Frequency of the pulse.
 float velocity;                     // Speed of wheel.
