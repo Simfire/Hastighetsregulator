@@ -16,7 +16,10 @@
 const int  rs = 7, en = 6, d4 = 5, d5 = 4, d6 = 3, d7 = 2 ;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
+bool codeOK;                // Status of access code.
 bool wheelSensorOK;        // Status of wheel sensor.
+const int i;
+const int controllTestPin;
 const int wheelSensorTestPin1 = 8;  // For testing the condition of the wheelsensor.
 const int wheelSensorTestPin2 = 11;  //              - " -
 const int pulsePin = 12;            // Pin for reading the puls from the wheelsensor.
@@ -27,8 +30,8 @@ float pulseTotal;                   // Period time of the pulse.
 float frequency;                    // Frequency of the pulse.
 float velocity;                     // Speed of wheel.
 
-void setup() {
  
+void setup(){
   pinMode(wheelSensorTestPin1,OUTPUT);
   pinMode(wheelSensorTestPin2,INPUT);
   pinMode(pulsePin,INPUT);
@@ -78,48 +81,63 @@ void setup() {
     lcd.setCursor(3,1);
     lcd.print("aktiverad!");
     delay(2000);
-//    }
     }
-//  lcd.clear();
   digitalWrite(wheelSensorTestPin1,LOW);    // Abort test
   lcd.setCursor(0,1);
     lcd.print("Hjulsensor OK!");
     delay(3000);
   }
 }
+
+void codeControll()  // controll of access code
+{ 
+  int i;               
+for(i=2; i>=0; i--){
+  if (digitalRead(controllTestPin) == HIGH){
+     lcd.setCursor(0,0);  
+     lcd.print("Koden okej!");
+     delay(1000);
+     codeOK = true;
+     return;
+     }
+  else{
+     lcd.setCursor(0,0);
+     lcd.print ("Fel kod!");
+     lcd.setCursor(0,1);
+     lcd.print(i);
+     lcd.print(" försök kvar!");
+     delay(3000);
+     }
+  }
+  codeOK = false;
+}
+
+// Main program starts here.
 void loop() {
-//  lcd.clear();
-  
   pulseHigh = pulseIn(pulsePin, HIGH);
   pulseLow = pulseIn(pulsePin, LOW);
   pulseTotal = pulseHigh + pulseLow;        // Time period of the pulse in micro seconds.
   
-  if (pulseTotal == 0) {
+  if (pulseTotal == 0){
     digitalWrite(ignitionPin, HIGH);
     frequency = 0;
    }
   else {
-    frequency = 1000000/ pulseTotal;      // Frequency in Hertz. (Hz)
-    
+    frequency = 1000000/ pulseTotal;      // Frequency in Hertz. (Hz)  
     if (frequency < 200) {                       // Equals a velocity of 13 km/h
-    digitalWrite(ignitionPin, HIGH);
-//    lcd.setCursor(0,0);
-//    lcd.print(frequency);
-//    lcd.print("  Hz");
-//    delay(500);
+      digitalWrite(ignitionPin, HIGH);
     }
     if (frequency > 230) {            // Equals a velocity of 16 km/h
-    digitalWrite(ignitionPin, LOW);
+      digitalWrite(ignitionPin, LOW);
     }
-  velocity = frequency * 0.1425; // Speed in km/h.
-  lcd.clear();
-  lcd.setCursor(0,1);
-  lcd.print(frequency);
-  lcd.print(" Hz");
-  lcd.setCursor(0,0);
-  lcd.print(velocity);
-  lcd.print(" km/h");
-  delay(500);
-    
-          }
+    velocity = frequency * 0.1425; // Speed in km/h.
+    lcd.clear();
+    lcd.setCursor(0,1);
+    lcd.print(frequency);
+    lcd.print(" Hz");
+    lcd.setCursor(0,0);
+    lcd.print(velocity);
+    lcd.print(" km/h");
+    delay(500);
+   }
 }
