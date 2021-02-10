@@ -28,22 +28,23 @@ long pulseLow;                      // Low duration time of pulse.
 float pulseTotal;                   // Period time of the pulse.
 float frequency;                    // Frequency of the pulse.
 float velocity;                     // Speed of wheel.
-bool wheelSensorOK == false;        // Status of wheel sensor. 
+bool wheelSensorOK = false;        // Status of wheel sensor. 
+
+
 
 // Declarations of functions
 
 // This function controles the status of access code. 
 // Returns "true" if access code correct otherwise "false".
-bool codeOk(){             
-  const int i;               
+bool codeOk(void){             
+  int i;               
   for(i=2; i>=0; i--){
     if (digitalRead(accessCodePin) == HIGH){
-      codeOk = true;
       lcd.setCursor(0,0);  
       lcd.print("Koden okej!");
       delay(1000);
+      return true;
     } else {
-      codeOK = false;
       lcd.setCursor(0,0);
       lcd.print ("Fel kod!");
       lcd.setCursor(0,1);
@@ -52,11 +53,12 @@ bool codeOk(){
       delay(3000);
     }  
   }
+  return false;
 } 
 
 // This function cuts off the power to the ignition coil and
 // displays "Startspärr aktiverad!" on lcd.
-void immobilizer(){
+void immobilizer(void){
   digitalWrite(ignitionPin, LOW);
   lcd.clear();
   lcd.setCursor(3,0);
@@ -68,15 +70,16 @@ void immobilizer(){
 
 // This function controles the status of wheel sensor. 
 // Returns "true" if access code correct otherwise "false".
-bool wheelSensorOk(){
+bool wheelSensorOk(void){
   digitalWrite(wheelSensorTestPin1, HIGH);   // Initiates test
   delay(100);
   if (digitalRead(wheelSensorTestPin2) == HIGH){
-    wheelSensorOK = true;
+    digitalWrite(wheelSensorTestPin1, LOW);  // Abort test
+    return true;
   } else {
-    wheelSensorOk = false;
-  }
-  digitalWrite(wheelSensorTestPin1, LOW);    // Abort test
+    digitalWrite(wheelSensorTestPin1, LOW);  // Abort test
+    return false;
+  }     
 }
 
 
@@ -94,8 +97,8 @@ void setup(){
   // otherwise the coil is dissabled. 
   lcd.setCursor(0,0);
   lcd.print("Test hjulsensor");
-  delay(1000);
-  if (wheelSensorOK() == true){
+  delay(2000);
+  if (wheelSensorOk()== true){
     digitalWrite(ignitionPin, HIGH);          // Power ON to ignition coil.
     lcd.clear();
     lcd.setCursor(0,0);
@@ -121,7 +124,7 @@ void setup(){
 
 
 // Main program starts here.
-void main() {
+void loop() {
   pulseHigh = pulseIn(pulsePin, HIGH);
   pulseLow = pulseIn(pulsePin, LOW);
   pulseTotal = pulseHigh + pulseLow;        // Time period of the pulse in micro seconds.
