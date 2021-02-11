@@ -16,23 +16,20 @@
 const int  rs = 7, en = 6, d4 = 5, d5 = 4, d6 = 3, d7 = 2 ;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-// Declarations of constants and variables
+// Declarations of constants and variables ************************
 
 const int accessCodePin = 11;       // Pin for control of access code.
 const int wheelSensorTestPin1 = 8;  // For testing the condition of the wheelsensor.
 const int wheelSensorTestPin2 = 9;  //              - " -
 const int pulsePin = 12;            // Pin for reading the puls from the wheelsensor.
 const int ignitionPin = 10;         // Controls the status of the ignitioncoil.
-long pulseHigh;                     // High duration time of pulse.
-long pulseLow;                      // Low duration time of pulse.
-float pulseTotal;                   // Period time of the pulse.
-float frequency;                    // Frequency of the pulse.
+
 float velocity;                     // Speed of wheel.
 bool wheelSensorOK = false;        // Status of wheel sensor. 
 
 
 
-// Declarations of functions
+// Declarations of functions ***************************************
 
 // This function controles the status of access code. 
 // Returns "true" if access code correct otherwise "false".
@@ -56,6 +53,27 @@ bool codeOk(void){
   return false;
 } 
 
+
+// This function calculates and returns the frequency of the pulse from the wheel sensor.
+float pulseFrequency(void){
+  long pulseHigh;                           // High duration time of pulse.
+  long pulseLow;                            // Low duration time of pulse.
+  float pulsePeriod;                        // Period time of the pulse.
+  float frequency;                          // Frequency of the pulse.
+  
+  pulseHigh = pulseIn(pulsePin, HIGH);      // High time in micro seconds.
+  pulseLow = pulseIn(pulsePin, LOW);        // Low time in micro seconds.
+  pulsePeriod = pulseHigh + pulseLow;       // Period of the pulse in micro seconds.
+  
+  if (pulsePeriod == 0){
+   frequency = 0; 
+  } else {
+   frequency = 1000000/ pulsePeriod;         // Frequency in Hertz. (Hz)   
+  }
+  return frequency; 
+}
+
+
 // This function cuts off the power to the ignition coil and
 // displays "Startspärr aktiverad!" on lcd.
 void immobilizer(void){
@@ -68,8 +86,9 @@ void immobilizer(void){
   delay(2000);
 }
 
+
 // This function controles the status of wheel sensor. 
-// Returns "true" if access code correct otherwise "false".
+// Returns "true" if sensor is okey otherwise "false".
 bool wheelSensorOk(void){
   digitalWrite(wheelSensorTestPin1, HIGH);   // Initiates test
   delay(100);
@@ -123,17 +142,9 @@ void setup(){
 }
 
 
-// Main program starts here.
-void loop() {
-  pulseHigh = pulseIn(pulsePin, HIGH);
-  pulseLow = pulseIn(pulsePin, LOW);
-  pulseTotal = pulseHigh + pulseLow;        // Time period of the pulse in micro seconds.
+// Main program starts here. ************************************
+void loop()     
   
-  if (pulseTotal == 0){
-    digitalWrite(ignitionPin, HIGH);
-    frequency = 0;
-   } else {
-    frequency = 1000000/ pulseTotal;         // Frequency in Hertz. (Hz)  
     if (frequency < 200) {                   // Equals a velocity of 28,5 km/h
       digitalWrite(ignitionPin, HIGH);
     }
@@ -142,12 +153,13 @@ void loop() {
     }
     velocity = frequency * 0.1425;            // Speed in km/h.
     lcd.clear();
-    lcd.setCursor(0,1);
-    lcd.print(frequency);
-    lcd.print(" Hz");
     lcd.setCursor(0,0);
     lcd.print(velocity,1);
     lcd.print(" km/h");
+    lcd.setCursor(0,1);
+    lcd.print(frequency);
+    lcd.print(" Hz");
+    
     delay(500);
    }
 }
