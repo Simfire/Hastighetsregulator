@@ -58,20 +58,35 @@ bool codeOk(void){
 } 
 
 
-// This function calculates and returns the frequency of the pulse.
+// This function controles the status of wheel sensor. 
+// Returns "true" if sensor is okey otherwise "false".
+bool wheelSensorOk(void){
+  digitalWrite(wheelSensorTestPin1, HIGH);        // Initiates test
+  delay(100);
+  if (digitalRead(wheelSensorTestPin2) == HIGH){
+    digitalWrite(wheelSensorTestPin1, LOW);       // Abort test
+    return true;
+  } else {
+    digitalWrite(wheelSensorTestPin1, LOW);       // Abort test
+    return false;
+  }     
+}
+
+
+// This function calculates and returns the frequency of the pulse [Hz].
 float pulseFrequency(int pulsePin){
-  long pulseHigh;                                // High duration time of pulse.
-  long pulseLow;                                 // Low duration time of pulse.
-  float pulsePeriod;                             // Period time of the pulse.
+  long pulseHigh;                                 // High duration time of pulse.
+  long pulseLow;                                  // Low duration time of pulse.
+  float pulsePeriod;                              // Period time of the pulse.
   
-  pulseHigh = pulseIn(pulsePin, HIGH);           // High time in micro seconds.
-  pulseLow = pulseIn(pulsePin, LOW);             // Low time in micro seconds.
-  pulsePeriod = pulseHigh + pulseLow;            // Period time of the pulse in micro seconds.
+  pulseHigh = pulseIn(pulsePin, HIGH);            // High time in micro seconds.
+  pulseLow = pulseIn(pulsePin, LOW);              // Low time in micro seconds.
+  pulsePeriod = pulseHigh + pulseLow;             // Period time of the pulse in micro seconds.
   
   if (pulsePeriod == 0){
     frequency = 0; 
   } else {
-    frequency = 1000000/ pulsePeriod;            // Frequency in Hertz. (Hz)   
+    frequency = 1000000/ pulsePeriod;             // Frequency in Hertz. (Hz)   
   }
   return frequency; 
 }
@@ -90,44 +105,23 @@ void immobilizer(void){
 }
 
 
-// This function controles the status of wheel sensor. 
-// Returns "true" if sensor is okey otherwise "false".
-bool wheelSensorOk(void){
-  digitalWrite(wheelSensorTestPin1, HIGH);          // Initiates test
-  delay(100);
-  if (digitalRead(wheelSensorTestPin2) == HIGH){
-    digitalWrite(wheelSensorTestPin1, LOW);         // Abort test
-    return true;
-  } else {
-    digitalWrite(wheelSensorTestPin1, LOW);         // Abort test
-    return false;
-  }     
-}
-
-
 // This function restricts the engine to 1200 rpm
 void safeMode(void){
   float rpm;
-  while(1){                                        // Endless loop, restart to exit!
-    rpm = pulseFrequency(ignitionPulsePin) * ;
+  while(1){                                          // Endless loop, restart to exit!
+    rpm = pulseFrequency(ignitionPulsePin) * 12;     // 5 cylinder => 5 sparks/round. 1 Hz in ignition pulse = 12 rpm.
     if (rpm > 1200){
       digitalWrite(ignitionPin, LOW);
     } else {
       digitalWrite(ignitionPin, HIGH);
-    }
-     lcd.clear();
-     lcd.setCursor(1,0);
-     lcd.print("Hjulsensor ur");
-     lcd.setCursor(3,1);
-     lcd.print("funktion!");
-     delay(2000);
-     lcd.clear();
-     lcd.setCursor(1,0);
-     lcd.print("S");lcd.print(char(225));lcd.print("kerhets");
-     lcd.print("l");lcd.print(char(225))lcd.print("ge");
-     lcd.setCursor(3,1);
-     lcd.print("aktiverat!");
-     delay(2000);
+    }  
+    lcd.clear();
+    lcd.setCursor(2,0);
+    lcd.print("S");lcd.print(char(225));lcd.print("kerhets");
+    lcd.print("l");lcd.print(char(225))lcd.print("ge");
+    lcd.setCursor(3,1);
+    lcd.print("aktiverat!");
+    delay(1000);
   }
 }
 
@@ -138,9 +132,9 @@ void setup(){
   pinMode(pulsePin, INPUT);
   pinMode(ignitionPin, OUTPUT);
   pinMode(accessCodePin, INPUT);
-  lcd.begin(16,2);                           // Initiates lcd.
-  lcd.clear();                               // Clear the lcd.
-  digitalWrite(ignitionPin, LOW);            // Initial status of ignition coil is power OFF.
+  lcd.begin(16,2);                                   // Initiates lcd.
+  lcd.clear();                                       // Clear the lcd.
+  digitalWrite(ignitionPin, LOW);                    // Initial status of ignition coil is power OFF.
  
   // Continuity test for the wheel sensor. If it's OK the ignition coil is enabled
   // otherwise the coil is dissabled. 
@@ -148,7 +142,7 @@ void setup(){
   lcd.print("Test hjulsensor");
   delay(2000);
   if (wheelSensorOk()== true){
-    digitalWrite(ignitionPin, HIGH);          // Power ON to ignition coil.
+    digitalWrite(ignitionPin, HIGH);                 // Power ON to ignition coil.
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Hjulsensor OK!");
@@ -159,7 +153,7 @@ void setup(){
     lcd.print(" f");lcd.print(char(239));lcd.print("rsiktigt!");
     delay(4000);
   } else {              
-    while(1){                                 // Endless loop, restart to exit!
+    while(1){                                        // Endless loop, restart to exit!
       lcd.clear();
       lcd.setCursor(1,0);
       lcd.print("Hjulsensor ur");
@@ -179,6 +173,12 @@ void loop(){
     digitalWrite(ignitionPin, HIGH);                       // Power to ignition coil ON.
     if (velocity == 0){
       if (wheelSensorOk() == false){
+        lcd.clear();
+        lcd.setCursor(1,0);
+        lcd.print("Hjulsensor ur");
+        lcd.setCursor(3,1);
+        lcd.print("funktion!");
+        delay(1000);
         safeMode();
       }
     }
