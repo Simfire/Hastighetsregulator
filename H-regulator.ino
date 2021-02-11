@@ -16,22 +16,22 @@
 
 // Declarations of global constants and variables *****************************
 
-const int rs = 7, en = 6;                  // lcd ports: rs = register select, e = enable
-const int d4 = 5, d5 = 4, d6 = 3, d7 = 2 ; // d4 - d7 = data ports
-const int accessCodePin = 11;              // Pin for control of access code.
+const int accessCodePin = 1;               // Pin for control of access code.
+const int d4 = 5, d5 = 4, d6 = 3, d7 = 2 ; // lcd ports: d4 - d7 = data ports
+const int rs = 7, en = 6;                  // rs = register select, e = enable
 const int wheelSensorTestPin1 = 8;         // For testing the condition of the wheelsensor.
 const int wheelSensorTestPin2 = 9;         //              - " -
-const int wheelSensorPulsePin = 12;        // Pin for reading the puls from the wheelsensor.
-const int ignitionPin = 10;                // Controls the status of the ignitioncoil.
-const int ignitionPulsePin = 1;            // Pin for reading the pulse to the ignition coil.
-float frequencyWheelSensor;                // Frequency of the wheel sensor pulse.
-float frequencyIgnitionCoil;               // Frequency of ignition coil pulse.
+const int wheelSensorPulsePin = 10;        // Pin for reading the puls from the wheelsensor.
+const int ignitionPulsePin = 11;           // Pin for reading the pulse to the ignition coil.
+const int ignitionPin = 12;                // Controls the status of the ignitioncoil.
 float velocity;                            // Speed of wheel.
-bool wheelSensorOK = false;                // Initial state of wheel sensor. 
-bool codeOk = false;                       // Initial state of acess code.
+float frequency;                           // Pulse frequency.
 
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7); // Initialize the library by associating any needed LCD interface pin
-                                           // with the arduino pin number it is connected to
+
+// Initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7); 
+                                           
 
 // Declarations of functions ***************************************************
 
@@ -136,32 +136,34 @@ void setup(){
   lcd.clear();                                       // Clear the lcd.
   digitalWrite(ignitionPin, LOW);                    // Initial status of ignition coil is power OFF.
  
-  // Continuity test for the wheel sensor. If it's OK the ignition coil is enabled
-  // otherwise the coil is dissabled. 
-  lcd.setCursor(0,0);
-  lcd.print("Test hjulsensor");
-  delay(2000);
-  if (wheelSensorOk()== true){
-    digitalWrite(ignitionPin, HIGH);                 // Power ON to ignition coil.
-    lcd.clear();
+  if (codeOK() == true){                             // Check access code.
+    // Continuity test for the wheel sensor. If it's OK the ignition coil is enabled
+    // otherwise the coil is dissabled. 
     lcd.setCursor(0,0);
-    lcd.print("Hjulsensor OK!");
-    delay(3000);
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("K");lcd.print(char(239));lcd.print("r");
-    lcd.print(" f");lcd.print(char(239));lcd.print("rsiktigt!");
-    delay(4000);
-  } else {              
-    while(1){                                        // Endless loop, restart to exit!
+    lcd.print("Test hjulsensor");
+    delay(2000);
+    if (wheelSensorOk()== true){
+      digitalWrite(ignitionPin, HIGH);                 // Power ON to ignition coil.
       lcd.clear();
-      lcd.setCursor(1,0);
-      lcd.print("Hjulsensor ur");
-      lcd.setCursor(3,1);
-      lcd.print("funktion!");
-      delay(2000);
-      immobilizer();
-    } 
+      lcd.setCursor(0,0);
+      lcd.print("Hjulsensor OK!");
+      delay(3000);
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("K");lcd.print(char(239));lcd.print("r");
+      lcd.print(" f");lcd.print(char(239));lcd.print("rsiktigt!");
+      delay(4000);
+    } else {              
+      while(1){                                        // Endless loop, restart to exit!
+        lcd.clear();
+        lcd.setCursor(1,0);
+        lcd.print("Hjulsensor ur");
+        lcd.setCursor(3,1);
+        lcd.print("funktion!");
+        delay(2000);
+        immobilizer();
+      } 
+    }
   }
 }
 
