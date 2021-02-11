@@ -7,29 +7,33 @@
 // 27 km/h = a pulse frequency of 189 Hz
 // 30 km/h = a pulse frequency of 210 Hz
 // 33 km/h = a pulse frequency of 231 Hz
+//
+// Author: Anders Hansson
+// Date: Februari 2020
+// Tested on Arduino Uno rev 3
 //************************************************************************************************************
 #include <LiquidCrystal.h>
 
-// initialize the library by associating any needed LCD interface pin
-// with the arduino pin number it is connected to
-// rs = register select, en = enable, d0 - d3 = data ports
-const int  rs = 7, en = 6, d4 = 5, d5 = 4, d6 = 3, d7 = 2 ;
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+// Declarations of global constants and variables *****************************
 
-// Declarations of constants and variables ************************
+const int rs = 7, en = 6;                  // lcd ports: rs = register select, e = enable
+const int d4 = 5, d5 = 4, d6 = 3, d7 = 2 ; // d4 - d7 = data ports
+const int accessCodePin = 11;              // Pin for control of access code.
+const int wheelSensorTestPin1 = 8;         // For testing the condition of the wheelsensor.
+const int wheelSensorTestPin2 = 9;         //              - " -
+const int wheelSensorPulsePin = 12;        // Pin for reading the puls from the wheelsensor.
+const int ignitionPin = 10;                // Controls the status of the ignitioncoil.
+const int ignitionPulsePin = 1;            // Pin for reading the pulse to the ignition coil.
+float frequencyWheelSensor;                // Frequency of the wheel sensor pulse.
+float frequencyIgnitionCoil;               // Frequency of ignition coil pulse.
+float velocity;                            // Speed of wheel.
+bool wheelSensorOK = false;                // Initial state of wheel sensor. 
+bool codeOk = false;                       // Initial state of acess code.
 
-const int accessCodePin = 11;       // Pin for control of access code.
-const int wheelSensorTestPin1 = 8;  // For testing the condition of the wheelsensor.
-const int wheelSensorTestPin2 = 9;  //              - " -
-const int pulsePin = 12;            // Pin for reading the puls from the wheelsensor.
-const int ignitionPin = 10;         // Controls the status of the ignitioncoil.
-float frequency;                    // Frequency of the pulse.
-float velocity;                     // Speed of wheel.
-bool wheelSensorOK = false;         // Initial state of wheel sensor. 
-bool codeOk = false;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7); // Initialize the library by associating any needed LCD interface pin
+                                           // with the arduino pin number it is connected to
 
-
-// Declarations of functions ***************************************
+// Declarations of functions ***************************************************
 
 // This function controles the status of access code. 
 // Returns "true" if access code correct otherwise "false".
@@ -54,20 +58,20 @@ bool codeOk(void){
 } 
 
 
-// This function calculates and returns the frequency of the pulse from the wheel sensor.
-float pulseFrequency(void){
-  long pulseHigh;                           // High duration time of pulse.
-  long pulseLow;                            // Low duration time of pulse.
-  float pulsePeriod;                        // Period time of the pulse.
+// This function calculates and returns the frequency of the pulse.
+float pulseFrequency(int pulsePin){
+  long pulseHigh;                                // High duration time of pulse.
+  long pulseLow;                                 // Low duration time of pulse.
+  float pulsePeriod;                             // Period time of the pulse.
   
-  pulseHigh = pulseIn(pulsePin, HIGH);      // High time in micro seconds.
-  pulseLow = pulseIn(pulsePin, LOW);        // Low time in micro seconds.
-  pulsePeriod = pulseHigh + pulseLow;       // Period of the pulse in micro seconds.
+  pulseHigh = pulseIn(pulsePin, HIGH);           // High time in micro seconds.
+  pulseLow = pulseIn(pulsePin, LOW);             // Low time in micro seconds.
+  pulsePeriod = pulseHigh + pulseLow;            // Period time of the pulse in micro seconds.
   
   if (pulsePeriod == 0){
-   frequency = 0; 
+    frequency = 0; 
   } else {
-   frequency = 1000000/ pulsePeriod;         // Frequency in Hertz. (Hz)   
+    frequency = 1000000/ pulsePeriod;            // Frequency in Hertz. (Hz)   
   }
   return frequency; 
 }
@@ -103,7 +107,28 @@ bool wheelSensorOk(void){
 
 // This function restricts the engine to 1200 rpm
 void safeMode(void){
-  
+  float rpm;
+  while(1){                                        // Endless loop, restart to exit!
+    rpm = pulseFrequency(ignitionPulsePin) * ;
+    if (rpm > 1200){
+      digitalWrite(ignitionPin, LOW);
+    } else {
+      digitalWrite(ignitionPin, HIGH);
+    }
+     lcd.clear();
+     lcd.setCursor(1,0);
+     lcd.print("Hjulsensor ur");
+     lcd.setCursor(3,1);
+     lcd.print("funktion!");
+     delay(2000);
+     lcd.clear();
+     lcd.setCursor(1,0);
+     lcd.print("S");lcd.print(char(225));lcd.print("kerhets");
+     lcd.print("l");lcd.print(char(225))lcd.print("ge");
+     lcd.setCursor(3,1);
+     lcd.print("aktiverat!");
+     delay(2000);
+  }
 }
 
 
@@ -134,7 +159,7 @@ void setup(){
     lcd.print(" f");lcd.print(char(239));lcd.print("rsiktigt!");
     delay(4000);
   } else {              
-    while(1){                    // Endless loop, restart to exit!
+    while(1){                                 // Endless loop, restart to exit!
       lcd.clear();
       lcd.setCursor(1,0);
       lcd.print("Hjulsensor ur");
@@ -147,26 +172,26 @@ void setup(){
 }
 
 
-// Main program starts here. ************************************
+// Main program starts here. ********************************************
 void loop(){   
-  velocity = pulseFrequency() * 0.1425;     // Speed in km/h.
+  velocity = pulseFrequency(wheelSensorPulsePin) * 0.1425; // Speed in km/h.
   if (velocity < 28,5) {                    
-    digitalWrite(ignitionPin, HIGH);        // Power to ignition coil ON.
-      if (velocity == 0){
-        if (wheelSensorOk() == false){
-          safeMode();
-        }
+    digitalWrite(ignitionPin, HIGH);                       // Power to ignition coil ON.
+    if (velocity == 0){
+      if (wheelSensorOk() == false){
+        safeMode();
       }
+    }
   }
   if (velocity > 32,8) {                   
-    digitalWrite(ignitionPin, LOW);         // Power to ignition coil OFF.
+    digitalWrite(ignitionPin, LOW);                        // Power to ignition coil OFF.
   }
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print(velocity,1);
   lcd.print(" km/h");
   lcd.setCursor(0,1);
-  lcd.print(frequency);
+  lcd.print(pulseFrequency(wheelSensorPulsePin));
   lcd.print(" Hz");
   delay(500);
 }
