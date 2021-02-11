@@ -23,10 +23,10 @@ const int wheelSensorTestPin1 = 8;  // For testing the condition of the wheelsen
 const int wheelSensorTestPin2 = 9;  //              - " -
 const int pulsePin = 12;            // Pin for reading the puls from the wheelsensor.
 const int ignitionPin = 10;         // Controls the status of the ignitioncoil.
-
+float frequency;                    // Frequency of the pulse.
 float velocity;                     // Speed of wheel.
-bool wheelSensorOK = false;        // Status of wheel sensor. 
-
+bool wheelSensorOK = false;         // Initial state of wheel sensor. 
+bool codeOk = false;
 
 
 // Declarations of functions ***************************************
@@ -59,7 +59,6 @@ float pulseFrequency(void){
   long pulseHigh;                           // High duration time of pulse.
   long pulseLow;                            // Low duration time of pulse.
   float pulsePeriod;                        // Period time of the pulse.
-  float frequency;                          // Frequency of the pulse.
   
   pulseHigh = pulseIn(pulsePin, HIGH);      // High time in micro seconds.
   pulseLow = pulseIn(pulsePin, LOW);        // Low time in micro seconds.
@@ -90,15 +89,21 @@ void immobilizer(void){
 // This function controles the status of wheel sensor. 
 // Returns "true" if sensor is okey otherwise "false".
 bool wheelSensorOk(void){
-  digitalWrite(wheelSensorTestPin1, HIGH);   // Initiates test
+  digitalWrite(wheelSensorTestPin1, HIGH);          // Initiates test
   delay(100);
   if (digitalRead(wheelSensorTestPin2) == HIGH){
-    digitalWrite(wheelSensorTestPin1, LOW);  // Abort test
+    digitalWrite(wheelSensorTestPin1, LOW);         // Abort test
     return true;
   } else {
-    digitalWrite(wheelSensorTestPin1, LOW);  // Abort test
+    digitalWrite(wheelSensorTestPin1, LOW);         // Abort test
     return false;
   }     
+}
+
+
+// This function restricts the engine to 1200 rpm
+void safeMode(void){
+  
 }
 
 
@@ -143,23 +148,25 @@ void setup(){
 
 
 // Main program starts here. ************************************
-void loop()     
-  
-    if (frequency < 200) {                   // Equals a velocity of 28,5 km/h
-      digitalWrite(ignitionPin, HIGH);
-    }
-    if (frequency > 230) {                    // Equals a velocity of 32,8 km/h
-      digitalWrite(ignitionPin, LOW);
-    }
-    velocity = frequency * 0.1425;            // Speed in km/h.
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print(velocity,1);
-    lcd.print(" km/h");
-    lcd.setCursor(0,1);
-    lcd.print(frequency);
-    lcd.print(" Hz");
-    
-    delay(500);
-   }
+void loop(){   
+  velocity = pulseFrequency() * 0.1425;     // Speed in km/h.
+  if (velocity < 28,5) {                    
+    digitalWrite(ignitionPin, HIGH);        // Power to ignition coil ON.
+      if (velocity == 0){
+        if (wheelSensorOk() == false){
+          safeMode();
+        }
+      }
+  }
+  if (velocity > 32,8) {                   
+    digitalWrite(ignitionPin, LOW);         // Power to ignition coil OFF.
+  }
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(velocity,1);
+  lcd.print(" km/h");
+  lcd.setCursor(0,1);
+  lcd.print(frequency);
+  lcd.print(" Hz");
+  delay(500);
 }
