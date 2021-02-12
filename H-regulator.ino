@@ -156,16 +156,14 @@ void setup() {
       lcd.print(" f"); lcd.print(char(239)); lcd.print("rsiktigt!");
       delay(4000);
       lcd.clear();
-    } else {
-      while (1) {                                      // Endless loop, restart to exit!
-        lcd.clear();
-        lcd.setCursor(1, 0);
-        lcd.print("Hjulsensor ur");
-        lcd.setCursor(3, 1);
-        lcd.print("funktion!");
-        delay(2000);
-        immobilizer();
-      }
+    } else {                                    
+      lcd.clear();
+      lcd.setCursor(1, 0);
+      lcd.print("Hjulsensor ur");
+      lcd.setCursor(3, 1);
+      lcd.print("funktion!");
+      delay(2000);
+      immobilizer();                                    // Endless loop, restart to exit!
     }
   }
 }
