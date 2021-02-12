@@ -38,13 +38,15 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 // This function cuts off the power to the ignition coil and
 // displays "Startspärr aktiverad!" on lcd.
 void immobilizer(void) {
-  digitalWrite(ignitionPin, LOW);
-  lcd.clear();
-  lcd.setCursor(3, 0);
-  lcd.print("Startsp"); lcd.print(char(225)); lcd.print("rr");
-  lcd.setCursor(3, 1);
-  lcd.print("aktiverad!");
-  delay(2000);
+  while(1){                                 // Endless loop, restart to exit!
+    digitalWrite(ignitionPin, LOW);
+    lcd.clear();
+    lcd.setCursor(3, 0);
+    lcd.print("Startsp"); lcd.print(char(225)); lcd.print("rr");
+    lcd.setCursor(3, 1);
+    lcd.print("aktiverad!");
+    delay(2000);
+  }
 }
 
 
@@ -63,13 +65,11 @@ bool codeOk(void) {
       lcd.print ("Fel kod!");
       lcd.setCursor(0, 1);
       lcd.print(i);
-      lcd.print(" försök kvar!");
+      lcd.print(" f");lcd.print(char(239));lcd.print("rs");lcd.print(char(239));lcd.print("k kvar!");
       delay(3000);
     }
   }
-  while (1) {
-    immobilizer();
-  }
+  immobilizer();
 }
 
 
@@ -173,7 +173,9 @@ void setup() {
 
 // Main program starts here. ********************************************
 void loop() {
-    velocity = (pulseFrequency(wheelSensorPulsePin)) * 0.1425; // Speed in km/h.
+  float wheelSensorPulsFrequency;
+    wheelSensorPulsFrequency = pulseFrequency(wheelSensorPulsePin);
+    velocity = wheelSensorPulsFrequency * 0.1425;             // Speed in km/h.
       if (velocity < 29) {
         lcd.setCursor(14, 1);
         lcd.print(":)");
@@ -197,15 +199,13 @@ void loop() {
         lcd.print("SAKTA NER!");
         delay(1000);
         lcd.clear();
-      } 
-    
-     
-    lcd.setCursor(0, 1);
-//    lcd.print(pulseFrequency(wheelSensorPulsePin),2);
-//    lcd.print(" Hz");
+      }   
     lcd.setCursor(0, 0);
     lcd.print(velocity, 1);
-    lcd.print(" km/h");   
+    lcd.print(" km/h");
+    lcd.setCursor(0, 1);
+    lcd.print(wheelSensorPulsFrequency,2);
+    lcd.print(" Hz");   
     delay(600);
     lcd.clear();
 }
