@@ -1,0 +1,21 @@
+// This file creates a  pulse on pin 13 depending on the value of the potentiometer connected to pin A0.
+// Tested on Arduino Nano.
+// Date: 2021-02-15
+/******************************************************************************************************
+
+const int valPot;
+
+
+void setup(void){
+ pinMode(A0, INPUT);
+ pinMode(13, OUTPUT);
+}
+
+void loop(void){
+
+  valPot = analogRead(A0);
+  digitalWrite(13, HIGH);
+  delay(valPot);
+  digitalWrite(13, LOW);
+  
+}
