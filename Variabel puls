@@ -1,10 +1,7 @@
-// This file creates a  pulse on pin 13 depending on the value of the potentiometer connected to pin A0.
+// This file creates a  pulse on pin 13 wich period time depends on the value of the potentiometer connected to pin A0.
 // Tested on Arduino Nano.
 // Date: 2021-02-15
 /******************************************************************************************************
-
-const int valPot;
-
 
 void setup(void){
  pinMode(A0, INPUT);
@@ -12,10 +9,11 @@ void setup(void){
 }
 
 void loop(void){
-
+  int valPot;
   valPot = analogRead(A0);
-  digitalWrite(13, HIGH);
+  digitalWrite(LED_BUILTIN, HIGH);
   delay(valPot);
-  digitalWrite(13, LOW);
-  
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(valPot);  
 }
+
