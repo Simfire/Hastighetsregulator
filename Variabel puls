@@ -3,17 +3,37 @@
 // Date: 2021-02-15
 /******************************************************************************************************
 
+const int switchPin = 2;
+float t;
+float freq = 1;
+
 void setup(void){
- pinMode(A0, INPUT);
+ pinMode(switchPin, INPUT_PULLUP);
  pinMode(13, OUTPUT);
+ Serial.begin(9600);
 }
 
 void loop(void){
-  int valPot;
-  valPot = analogRead(A0);
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(valPot);
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(valPot);  
-}
-
+   
+ while (digitalRead(switchPin) == 0 && freq < 250){ 
+    //Serial.println(i,1);
+    t = 1/(2 * freq);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(t);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(t);
+    Serial.println(freq,0);
+    freq = freq + 1;
+    }
+  if(freq > 0 && freq <= 250){
+    t = 1/(2 * freq);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(t);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(t);
+    Serial.println(freq,0);
+   freq = freq - 1;
+    }
+    //Serial.println(t,6);
+    
+  }
