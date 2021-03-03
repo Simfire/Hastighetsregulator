@@ -1,0 +1,137 @@
+// Speed controll for Volvo 850 -97
+// This program monitors the vehicle speed by monitoring the frequency of the speed pulse (yellow/brown wire)from the ABS controll unit.
+// If it exeeds ??? Hz (32 km/h) it cuts of the power suply to the ignition coil.
+//
+// 
+// Author: Anders Hansson
+// Date: Mars 2021
+// Tested on Arduino Uno rev 3
+//
+//************************************************************************************************************
+#include <LiquidCrystal.h>
+
+// Declarations of global constants and variables *****************************
+
+const int accessCodePin = 1;               // Pin for control of access code.
+const int d4 = 5, d5 = 4, d6 = 3, d7 = 2 ; // lcd ports: d4 - d7 = data ports
+const int rs = 7, en = 6;                  // rs = register select, e = enable
+const int speedPulsePin = 8;               // Pin for reading the speed pulse.
+const int ignitionPulsePin = 11;           // Pin for reading the pulse to the ignition coil.
+const int ignitionPin = 12;                // Controls the status of the ignitioncoil.
+float velocity;                            // Speed of wheel.
+float frequency;                           // Pulse frequency.
+
+
+// Initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+
+// Declarations of functions ***************************************************
+
+// This function cuts off the power to the ignition coil and
+// displays "Startspärr aktiverad!" on lcd.
+void immobilizer(void) {
+  while(1){                                 // Endless loop, restart to exit!
+    digitalWrite(ignitionPin, LOW);
+    lcd.clear();
+    lcd.setCursor(3, 0);
+    lcd.print("Startsp"); lcd.print(char(225)); lcd.print("rr");
+    lcd.setCursor(3, 1);
+    lcd.print("aktiverad!");
+    delay(2000);
+  }
+}
+
+
+// This function controles the status of access code.
+// Returns "true" if access code is correct otherwise calls imobilizer().
+bool codeOk(void) {
+  int i;
+  for (i = 2; i >= 0; i--) {
+    if (digitalRead(accessCodePin) == HIGH) {
+      lcd.setCursor(0, 0);
+      lcd.print("Koden okej!");
+      delay(1000);
+      return true;
+    } else {
+      lcd.setCursor(0, 0);
+      lcd.print ("Fel kod!");
+      lcd.setCursor(0, 1);
+      lcd.print(i);
+      lcd.print(" f");lcd.print(char(239));lcd.print("rs");lcd.print(char(239));lcd.print("k kvar!");
+      delay(3000);
+    }
+  }
+  immobilizer();
+}
+
+
+// This function calculates and returns the frequency of the pulse [Hz].
+float pulseFrequency(int pulsePin) {
+  long pulseHigh;                                 // High duration time of pulse.
+  long pulseLow;                                  // Low duration time of pulse.
+  float pulsePeriod;                              // Period time of the pulse.
+
+  pulseHigh = pulseIn(pulsePin, HIGH);            // High time in micro seconds.
+  pulseLow = pulseIn(pulsePin, LOW);              // Low time in micro seconds.
+  pulsePeriod = pulseHigh + pulseLow;             // Period time of the pulse in micro seconds.
+  if (pulsePeriod == 0){
+    frequency = 0;
+  } else {
+    frequency = (1000000/pulsePeriod);         // Frequency in Hertz. (Hz)
+  }
+  return frequency;
+}
+
+
+void setup() {
+  pinMode(accessCodePin, INPUT);
+  pinMode(ignitionPulsePin, INPUT);
+  pinMode(speedPulsePin, INPUT);
+  pinMode(ignitionPin, OUTPUT);
+  lcd.begin(16, 2);                                  // Initiates lcd.
+  lcd.clear();                                       // Clear the lcd.
+  digitalWrite(ignitionPin, LOW);                    // Initial status of ignition coil is power OFF.
+
+  if (codeOk() == true) {                            // Check access code.
+    // If the code is OK the ignition coil is enabled
+    // otherwise the coil remains dissabled.
+      digitalWrite(ignitionPin, HIGH);
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("K"); lcd.print(char(239)); lcd.print("r");
+      lcd.print(" f"); lcd.print(char(239)); lcd.print("rsiktigt!");
+      delay(4000);
+      lcd.clear();
+    } 
+}
+
+
+// Main program starts here. ********************************************
+void loop() {
+  float speedPulseFrequency;
+    speedPulseFrequency = pulseFrequency(speedPulsePin);
+    velocity = speedPulseFrequency * ???;                     // Speed in km/h.
+      if (velocity < 29) {
+        digitalWrite(ignitionPin, HIGH);                       // Power to ignition coil ON.
+        lcd.setCursor(14, 1);
+        lcd.print(":)");
+      }
+      if (velocity > 32.8) {
+        digitalWrite(ignitionPin, LOW);                        // Power to ignition coil OFF.
+        lcd.clear();
+        lcd.setCursor(3, 0);
+        lcd.print("SAKTA NER!");
+        delay(1000);
+        lcd.clear();
+      }   
+    lcd.setCursor(0, 0);
+    lcd.print(velocity, 1);
+    lcd.print(" km/h");
+    lcd.setCursor(0, 1);
+    lcd.print(speedPulseFrequency,2);
+    lcd.print(" Hz");   
+    delay(600);
+    lcd.clear();
+}
